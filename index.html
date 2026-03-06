@@ -381,7 +381,53 @@
                 startQuiz();
             }
         });
+// Update this URL to match your actual Render deployment!
+        const BACKEND_URL = "https://YOURSITE-service.onrender.com";
 
+        async function startQuiz() {
+            // Get name or use default
+            const inputVal = nameInput.value.trim();
+            playerName = inputVal !== "" ? inputVal : "Anonymous Student";
+            
+            // Show a loading state while we fetch the streak
+            startScreen.querySelector('.start-btn').textContent = "Loading...";
+            startScreen.querySelector('.start-btn').disabled = true;
+
+            try {
+                // Call the backend to increment and get the streak
+                const response = await fetch(`${BACKEND_URL}/start-quiz`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nickname: playerName })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Display name + streak (e.g., "Player 🔥 5 Starts")
+                    displayName.textContent = `${playerName} 🔥 ${data.streak_count} Starts`;
+                } else {
+                    // Fallback if DB fails
+                    displayName.textContent = playerName;
+                    console.error("Backend error:", response.status);
+                }
+            } catch (error) {
+                // Fallback if backend is asleep/offline
+                displayName.textContent = playerName;
+                console.error("Failed to connect to backend:", error);
+            }
+
+            // Reset button state
+            startScreen.querySelector('.start-btn').textContent = "Start Quiz";
+            startScreen.querySelector('.start-btn').disabled = false;
+
+            // Switch screens
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            
+            restartGame();
+        }
         function startQuiz() {
             // Get name or use default
             const inputVal = nameInput.value.trim();
@@ -511,3 +557,4 @@
     </script>
 </body>
 </html>
+
