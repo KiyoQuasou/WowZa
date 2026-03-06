@@ -7,8 +7,7 @@ import os
 
 # Database setup
 # Render provides the database URL in the environment variable 'DATABASE_URL'
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/dbname")
-
+SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 # Handle Render's postgres:// vs postgresql:// quirk if necessary
 if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
     SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
