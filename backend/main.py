@@ -27,6 +27,9 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+@app.get("/")
+def read_root():
+    return {"message": "My API is officially LIVE on the internet! 🚀"}
 # Allow frontend to call the backend
 app.add_middleware(
     CORSMiddleware,
