@@ -20,7 +20,7 @@ Base = declarative_base()
 # Database Model
 class UserStreak(Base):
     __tablename__ = "user_streaks"
-    nickname = Column(String, primary key=True, index=True)
+    nickname = Column(String, primary_key=True, index=True)
     streak_count = Column(Integer, default=0)
 
 # Create tables
