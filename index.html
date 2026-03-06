@@ -35,36 +35,107 @@
             max-width: 500px;
             width: 100%;
             text-align: center;
-            position: relative; /* For modal positioning */
+            position: relative;
         }
 
-        header {
+        /* Screen visibility */
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Start Screen Styles --- */
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+        }
+
+        #start-screen h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        #start-screen p {
+            color: #6b7280;
             margin-bottom: 2rem;
+        }
+
+        .name-input {
+            width: 80%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .name-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .start-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            width: 80%;
+        }
+
+        .start-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        /* --- Quiz Screen Styles --- */
+        header {
+            margin-bottom: 1.5rem;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
 
-        h1 {
+        .quiz-title {
             margin: 0;
             font-size: 1.5rem;
             color: var(--primary-color);
         }
 
-        /* Hearts and Score Bar */
         .top-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .player-info {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+
+        .stats-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f8fafc;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            margin-top: 1rem;
         }
 
         .hearts {
-            font-size: 1.5rem;
-            letter-spacing: 5px;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
         }
 
         .score-box {
@@ -72,7 +143,7 @@
             color: #4b5563;
         }
 
-        /* The Flashcard Area */
+        /* Flashcard Area */
         .character-display {
             font-size: 8rem;
             font-weight: bold;
@@ -97,7 +168,7 @@
             gap: 10px;
         }
 
-        button {
+        .option-btn {
             background-color: white;
             border: 2px solid #e5e7eb;
             border-radius: 0.5rem;
@@ -108,19 +179,18 @@
             color: var(--text-color);
         }
 
-        button:hover {
+        .option-btn:hover {
             border-color: var(--primary-color);
             background-color: #eff6ff;
         }
 
-        /* State Classes */
-        button.correct {
+        .option-btn.correct {
             background-color: var(--success-color) !important;
             color: white !important;
             border-color: var(--success-color) !important;
         }
 
-        button.wrong {
+        .option-btn.wrong {
             background-color: var(--error-color) !important;
             color: white !important;
             border-color: var(--error-color) !important;
@@ -149,7 +219,6 @@
             align-items: center;
             justify-content: center;
             z-index: 10;
-            display: none; /* Hidden by default */
         }
 
         .modal-content h2 {
@@ -163,19 +232,26 @@
             margin-bottom: 2rem;
         }
 
-        .restart-btn {
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
             background-color: var(--primary-color);
             color: white;
             border: none;
             padding: 10px 20px;
-            font-size: 1.2rem;
+            font-size: 1rem;
             border-radius: 0.5rem;
             cursor: pointer;
         }
 
-        .restart-btn:hover {
-            background-color: #1d4ed8;
+        .action-btn.secondary {
+            background-color: #6b7280;
         }
+
+        .action-btn:hover { opacity: 0.9; }
 
         @media (max-width: 400px) {
             .options-grid { grid-template-columns: 1fr; }
@@ -187,29 +263,45 @@
 <body>
 
     <div class="container">
-        <div id="game-over-modal" class="modal-overlay">
-            <div class="modal-content">
-                <h2>Game Over!</h2>
-                <p>Final Score: <span id="final-score">0</span></p>
-                <button class="restart-btn" onclick="restartGame()">Play Again</button>
-            </div>
+        
+        <div id="start-screen">
+            <h1>Thai Consonant Drill</h1>
+            <p>Test your knowledge of the Thai alphabet!</p>
+            <input type="text" id="player-name-input" class="name-input" placeholder="Enter your nickname" autocomplete="off">
+            <button class="start-btn" onclick="startQuiz()">Start Quiz</button>
         </div>
 
-        <header>
-            <h1>Thai Consonant Drill</h1>
-            <div class="top-bar">
-                <div class="hearts" id="hearts-display">❤️❤️❤️</div>
-                <div class="score-box" id="score">Score: 0</div>
+        <div id="quiz-screen" class="hidden">
+            
+            <div id="game-over-modal" class="modal-overlay hidden">
+                <div class="modal-content">
+                    <h2>Game Over!</h2>
+                    <p><span id="final-player-name"></span>, your final score is: <strong id="final-score">0</strong></p>
+                    <div class="modal-buttons">
+                        <button class="action-btn" onclick="restartGame()">Play Again</button>
+                        <button class="action-btn secondary" onclick="goToStart()">Change Name</button>
+                    </div>
+                </div>
             </div>
-        </header>
 
-        <div class="character-display" id="char-display">?</div>
+            <header>
+                <h2 class="quiz-title">Thai Consonant Drill</h2>
+                <div class="top-bar">
+                    <div class="player-info" id="display-name">Player</div>
+                    <div class="stats-row">
+                        <div class="hearts" id="hearts-display">❤️❤️❤️</div>
+                        <div class="score-box" id="score">Score: 0</div>
+                    </div>
+                </div>
+            </header>
 
-        <p class="question-text">Select the correct name:</p>
+            <div class="character-display" id="char-display">?</div>
+            <p class="question-text">Select the correct name:</p>
+            <div class="options-grid" id="options-container"></div>
+            <div class="feedback-msg" id="feedback"></div>
 
-        <div class="options-grid" id="options-container"></div>
+        </div>
 
-        <div class="feedback-msg" id="feedback"></div>
     </div>
 
     <script>
@@ -264,15 +356,54 @@
         let score = 0;
         let lives = 3;
         let isAnswering = true;
+        let playerName = "Player";
 
-        // Elements
+        // DOM Elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const nameInput = document.getElementById('player-name-input');
+        const displayName = document.getElementById('display-name');
+        
         const charDisplay = document.getElementById('char-display');
         const optionsContainer = document.getElementById('options-container');
         const scoreDisplay = document.getElementById('score');
         const heartsDisplay = document.getElementById('hearts-display');
         const feedbackDisplay = document.getElementById('feedback');
+        
         const modal = document.getElementById('game-over-modal');
         const finalScoreSpan = document.getElementById('final-score');
+        const finalPlayerName = document.getElementById('final-player-name');
+
+        // Allow pressing Enter to start the quiz
+        nameInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                startQuiz();
+            }
+        });
+
+        function startQuiz() {
+            // Get name or use default
+            const inputVal = nameInput.value.trim();
+            playerName = inputVal !== "" ? inputVal : "Anonymous Student";
+            
+            // Update UI with name
+            displayName.textContent = playerName;
+            
+            // Switch screens
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            
+            restartGame();
+        }
+
+        function goToStart() {
+            modal.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            nameInput.value = ""; // Clear input for a new name
+            nameInput.focus();
+        }
 
         function getRandomInt(max) {
             return Math.floor(Math.random() * max);
@@ -286,15 +417,9 @@
         }
 
         function updateHearts() {
-            // Render hearts based on 'lives' count
             let heartString = "";
-            for(let i=0; i<lives; i++) {
-                heartString += "❤️";
-            }
-            // Add broken hearts for lost lives (optional visual style)
-            for(let i=lives; i<3; i++) {
-                heartString += "🖤";
-            }
+            for(let i=0; i<lives; i++) heartString += "❤️";
+            for(let i=lives; i<3; i++) heartString += "🖤";
             heartsDisplay.textContent = heartString;
         }
 
@@ -303,7 +428,7 @@
             lives = 3;
             scoreDisplay.textContent = `Score: 0`;
             updateHearts();
-            modal.style.display = 'none'; // Hide modal
+            modal.classList.add('hidden');
             generateQuestion();
         }
 
@@ -316,7 +441,7 @@
             const correctIndex = getRandomInt(consonants.length);
             currentItem = consonants[correctIndex];
 
-            // Generate Distractors
+            // Generate 3 Distractors
             let options = [currentItem];
             while (options.length < 4) {
                 let randomDistractor = consonants[getRandomInt(consonants.length)];
@@ -331,6 +456,7 @@
 
             options.forEach(opt => {
                 const btn = document.createElement('button');
+                btn.className = 'option-btn';
                 btn.textContent = `${opt.name} (${opt.meaning})`;
                 btn.onclick = () => checkAnswer(opt, btn);
                 optionsContainer.appendChild(btn);
@@ -339,7 +465,7 @@
 
         function checkAnswer(selected, btnElement) {
             if (!isAnswering) return;
-            isAnswering = false; // Block clicks
+            isAnswering = false;
 
             const buttons = optionsContainer.querySelectorAll('button');
 
@@ -351,10 +477,7 @@
                 feedbackDisplay.classList.add('feedback-correct');
                 scoreDisplay.textContent = `Score: ${score}`;
                 
-                // Next Question
-                setTimeout(() => {
-                    generateQuestion();
-                }, 1000);
+                setTimeout(() => generateQuestion(), 1000);
 
             } else {
                 // Wrong
@@ -373,24 +496,18 @@
                 });
 
                 if (lives <= 0) {
-                    // Game Over Logic
+                    // Game Over
                     setTimeout(() => {
                         finalScoreSpan.textContent = score;
-                        modal.style.display = 'flex'; // Show Modal
+                        finalPlayerName.textContent = playerName;
+                        modal.classList.remove('hidden');
                     }, 1000);
                 } else {
-                    // Continue Game
-                    setTimeout(() => {
-                        generateQuestion();
-                    }, 1500);
+                    // Continue
+                    setTimeout(() => generateQuestion(), 1500);
                 }
             }
         }
-
-        // Start
-        updateHearts();
-        generateQuestion();
-
     </script>
 </body>
 </html>
