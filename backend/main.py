@@ -38,16 +38,18 @@ app = FastAPI()
 # ==========================================
 @app.get("/")
 def read_root():
-    # Find the exact directory this main.py file is living in
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    # 1. Find where main.py is (the 'backend' folder)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
     
-    # Safely glue that directory path to the index.html file name
-    html_path = os.path.join(base_dir, "index.html")
+    # 2. Go UP one level to the main project folder
+    parent_dir = os.path.dirname(current_dir)
     
-    # Safety Check: If the file is missing, tell us exactly where it looked!
+    # 3. Look for index.html in that main folder
+    html_path = os.path.join(parent_dir, "index.html")
+    
+    # Safety Check!
     if not os.path.exists(html_path):
         return {"error": "File not found", "looked_in_path": html_path}
         
     return FileResponse(html_path)
-
 # (Paste any of your other @app.get or @app.post routes down here!)
