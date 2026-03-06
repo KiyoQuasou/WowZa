@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, String, Integer
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -29,7 +30,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"message": "My API is officially LIVE on the internet! 🚀"}
+    return FileResponse("index.html")
 # Allow frontend to call the backend
 app.add_middleware(
     CORSMiddleware,
