@@ -1,70 +1,53 @@
 import os
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, String, Integer
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
-from pydantic import BaseModel
-import os
+from sqlalchemy import create_engine, Column, String
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Database setup
-# Render provides the database URL in the environment variable 'DATABASE_URL'
-SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
-# Handle Render's postgres:// vs postgresql:// quirk if necessary
-if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
-    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
+# ==========================================
+# 1. DATABASE SETUP (Safe SQLite Version)
+# ==========================================
+# This creates a local file named 'thaidrill.db' right inside your folder
+SQLALCHEMY_DATABASE_URL = "sqlite:///./thaidrill.db"
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, 
+    connect_args={"check_same_thread": False} # Required for SQLite + FastAPI
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Database Model
-class UserStreak(Base):
-    __tablename__ = "user_streaks"
+# ==========================================
+# 2. DATABASE MODELS
+# ==========================================
+class User(Base):
+    __tablename__ = "users"
+    # Notice the underscore in primary_key!
     nickname = Column(String, primary_key=True, index=True)
-    streak_count = Column(Integer, default=0)
 
-# Create tables
+# This physically creates the database file and tables when the app starts
 Base.metadata.create_all(bind=engine)
 
+# ==========================================
+# 3. FASTAPI APP INIT
+# ==========================================
 app = FastAPI()
 
+# ==========================================
+# 4. WEB ROUTES
+# ==========================================
 @app.get("/")
 def read_root():
-    return FileResponse("index.html")
-# Allow frontend to call the backend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], # Change this to your actual frontend URL in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Pydantic schema for incoming requests
-class UserStart(BaseModel):
-    nickname: str
-
-# Dependency to get DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@app.post("/start-quiz")
-def start_quiz(user: UserStart, db: Session = Depends(get_db)):
-    # Find user or create new one
-    db_user = db.query(UserStreak).filter(UserStreak.nickname == user.nickname).first()
+    # Find the exact directory this main.py file is living in
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     
-    if db_user:
-        db_user.streak_count += 1
-    else:
-        db_user = UserStreak(nickname=user.nickname, streak_count=1)
-        db.add(db_user)
+    # Safely glue that directory path to the index.html file name
+    html_path = os.path.join(base_dir, "index.html")
     
-    db.commit()
-    db.refresh(db_user)
-    
-    return {"nickname": db_user.nickname, "streak_count": db_user.streak_count}
+    # Safety Check: If the file is missing, tell us exactly where it looked!
+    if not os.path.exists(html_path):
+        return {"error": "File not found", "looked_in_path": html_path}
+        
+    return FileResponse(html_path)
+
+# (Paste any of your other @app.get or @app.post routes down here!)
