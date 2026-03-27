@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThriftFit | Your AI Stylist Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .fade-in { animation: fadeIn 0.8s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #14b8a6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .match-card img.clothing-item {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        /* Custom scrollbar for the results area so it doesn't make the whole page massive */
+        .results-scroll {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-gray-100">
+        <div class="text-2xl font-bold text-teal-600">ThriftFit</div>
+        <div class="space-x-4 text-sm font-semibold hidden md:block text-gray-600">
+            <a href="#" class="hover:text-teal-600">My Wardrobe</a>
+            <a href="#" class="hover:text-teal-600">AI Stylist</a>
+            <a href="#" class="hover:text-teal-600">Partner Stores</a>
+            <a href="#" class="bg-teal-600 text-white px-4 py-2 rounded-full text-xs hover:bg-teal-700 transition">Login</a>
+        </div>
+    </nav>
+
+    <header class="text-center py-10 px-4 bg-gradient-to-br from-teal-50 to-white">
+        <h1 class="text-3xl md:text-4xl font-bold mb-3 text-gray-900">Dress with confidence. Sustainably.</h1>
+        <p class="text-base text-gray-600 max-w-xl mx-auto">Snap a photo of any item, tell us your style and budget, and our AI will pair it with the best second-hand finds to complete your look.</p>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-4 md:p-8 -mt-6 bg-white shadow-2xl rounded-2xl border border-gray-100 mb-12 relative z-10">
+        
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <div class="md:col-span-5 space-y-6">
+                
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">1. Select Your Base Item</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-5 text-center bg-gray-50 cursor-not-allowed transition">
+                        <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&auto=format&fit=crop&q=60" alt="Pre-selected Item: Vintage Plaid Blazer" class="w-32 h-32 mx-auto rounded-lg object-cover mb-3 shadow-md">
+                        <p class="text-xs text-gray-500 font-mono">item_blazer_vintage_01.jpg</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <label class="block text-sm font-semibold mb-4 text-gray-700">2. Guide your AI Stylist</label>
+                    <div class="space-y-4">
+                        
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1 uppercase tracking-wider">Aesthetic / Vibe</label>
+                            <input type="text" id="styleInput" placeholder="E.g., 90s Grunge, Minimalist, Y2K" value="90s Grunge" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1 uppercase tracking-wider">Occasion</label>
+                            <select id="occasionInput" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+                                <option value="Night Out / Concert" selected>Night Out / Concert</option>
+                                <option value="Everyday Casual">Everyday Casual</option>
+                                <option value="Creative Office">Creative Office</option>
+                                <option value="Date Night">Date Night</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1 uppercase tracking-wider">Budget Per Item</label>
+                            <select id="budgetInput" class="w-full border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+                                <option value="low" selected>Low (Under $30)</option>
+                                <option value="med">Medium ($30 - $75)</option>
+                                <option value="high">High ($75+)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="generateBtn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 px-4 rounded-lg transition flex justify-center items-center text-sm shadow-md">
+                    <span id="btnText">Find Matches & Pairings</span>
+                    <div id="loadingSpinner" class="loader ml-3 hidden"></div>
+                </button>
+            </div>
+
+            <div class="md:col-span-7 bg-gray-50 p-6 rounded-xl border border-gray-200 flex flex-col justify-center items-center min-h-[500px]">
+                
+                <div id="emptyState" class="text-center text-gray-400 max-w-sm px-4">
+                    <div class="text-6xl mb-4">✨</div>
+                    <p class="text-sm">Welcome! Provide an item and stylist instructions on the left to get instant, curated second-hand outfit pairings.</p>
+                </div>
+
+                <div id="resultsArea" class="hidden w-full fade-in h-full flex flex-col">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-3 mb-4 gap-2">
+                        <h3 class="font-bold text-xl text-gray-900">Your Curated Outfit</h3>
+                        <div class="flex space-x-2">
+                            <span id="displayStyle" class="text-xs bg-teal-100 text-teal-800 px-3 py-1 rounded-full font-semibold">90s Grunge</span>
+                            <span id="displayOccasion" class="text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-semibold">Night Out / Concert</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4 results-scroll pr-2 pb-4">
+                        <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                            <div class="w-20 h-20 flex-shrink-0">
+                                <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&auto=format&fit=crop&q=60" alt="Your Vintage Plaid Blazer" class="w-full h-full object-cover rounded-md shadow-inner">
+                            </div>
+                            <div>
+                                <p class="text-xs text-teal-600 font-semibold uppercase tracking-wider mb-1">Your Base Item</p>
+                                <p class="font-bold text-gray-900 leading-tight">Vintage Plaid Wool Blazer</p>
+                                <p class="text-xs text-gray-500 mt-1">From Your Digital Wardrobe</p>
+                            </div>
+                        </div>
+
+                        <div class="text-center text-teal-600 font-bold text-sm tracking-widest my-1">+ Complete The Look +</div>
+
+                        <div class="match-card flex items-center space-x-4 bg-white p-4 rounded-lg shadow-md border-l-4 border-teal-500 hover:border-teal-600 transition">
+                            <img src="https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&auto=format&fit=crop&q=60" alt="Vintage Straight-Leg Jeans" class="clothing-item">
+                            <div class="flex-1">
+                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Bottoms</p>
+                                <p class="font-bold text-gray-900 leading-tight">90s Straight-Leg Levi's 501s</p>
+                                <div class="flex items-center space-x-2 mt-2">
+                                    <span class="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold">G</span>
+                                    <p class="text-xs text-gray-500">Goodwill Online</p>
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col justify-between h-full">
+                                <p class="font-bold text-xl text-teal-600">$28</p>
+                                <a href="#" class="text-xs bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded mt-2 inline-block font-semibold transition">Buy Now</a>
+                            </div>
+                        </div>
+
+                        <div class="match-card flex items-center space-x-4 bg-white p-4 rounded-lg shadow-md border-l-4 border-teal-500 hover:border-teal-600 transition">
+                            <img src="https://images.unsplash.com/photo-1503342394128-c104d54dba01?w=400&auto=format&fit=crop&q=60" alt="Retro Band Tee" class="clothing-item">
+                            <div class="flex-1">
+                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Top</p>
+                                <p class="font-bold text-gray-900 leading-tight">Vintage Graphic Band Tee</p>
+                                <div class="flex items-center space-x-2 mt-2">
+                                    <span class="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold">D</span>
+                                    <p class="text-xs text-gray-500">Depop Top Seller</p>
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col justify-between h-full">
+                                <p class="font-bold text-xl text-teal-600">$15</p>
+                                <a href="#" class="text-xs bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded mt-2 inline-block font-semibold transition">Buy Now</a>
+                            </div>
+                        </div>
+
+                        <div class="match-card flex items-center space-x-4 bg-white p-4 rounded-lg shadow-md border-l-4 border-teal-500 hover:border-teal-600 transition">
+                            <img src="https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=400&auto=format&fit=crop&q=60" alt="Chunky Black Boots" class="clothing-item">
+                            <div class="flex-1">
+                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Footwear</p>
+                                <p class="font-bold text-gray-900 leading-tight">Distressed Chunky Leather Boots</p>
+                                <div class="flex items-center space-x-2 mt-2">
+                                    <span class="w-5 h-5 bg-yellow-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold">P</span>
+                                    <p class="text-xs text-gray-500">Poshmark</p>
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col justify-between h-full">
+                                <p class="font-bold text-xl text-teal-600">$45</p>
+                                <a href="#" class="text-xs bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded mt-2 inline-block font-semibold transition">Buy Now</a>
+                            </div>
+                        </div>
+
+                        <div class="match-card flex items-center space-x-4 bg-white p-4 rounded-lg shadow-md border-l-4 border-teal-500 hover:border-teal-600 transition">
+                            <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&auto=format&fit=crop&q=60" alt="Vintage Leather Shoulder Bag" class="clothing-item">
+                            <div class="flex-1">
+                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Accessory</p>
+                                <p class="font-bold text-gray-900 leading-tight">90s Leather Mini Shoulder Bag</p>
+                                <div class="flex items-center space-x-2 mt-2">
+                                    <span class="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold">T</span>
+                                    <p class="text-xs text-gray-500">thredUP</p>
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col justify-between h-full">
+                                <p class="font-bold text-xl text-teal-600">$22</p>
+                                <a href="#" class="text-xs bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded mt-2 inline-block font-semibold transition">Buy Now</a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Make sure the script runs after the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('generateBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('loadingSpinner');
+            const emptyState = document.getElementById('emptyState');
+            const resultsArea = document.getElementById('resultsArea');
+            
+            // Dynamic tags elements
+            const styleInput = document.getElementById('styleInput');
+            const occasionInput = document.getElementById('occasionInput');
+            const displayStyle = document.getElementById('displayStyle');
+            const displayOccasion = document.getElementById('displayOccasion');
+
+            btn.addEventListener('click', () => {
+                // Update the dynamic tags based on what the user selected
+                displayStyle.innerText = styleInput.value || "Any Style";
+                displayOccasion.innerText = occasionInput.value;
+
+                // Simulate AI Loading state
+                btnText.innerText = 'Curating Full Outfit...';
+                spinner.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                resultsArea.classList.add('hidden');
+                
+                // Disable button so user doesn't double-click
+                btn.disabled = true;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+
+                // Fake an API delay
+                setTimeout(() => {
+                    // Reset button
+                    spinner.classList.add('hidden');
+                    btnText.innerText = 'Find Matches & Pairings';
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    
+                    // Show dynamic results
+                    resultsArea.classList.remove('hidden');
+                }, 2000); // 2 second delay
+            });
+        });
+    </script>
+</body>
+</html>
